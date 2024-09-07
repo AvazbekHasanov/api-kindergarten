@@ -1,12 +1,11 @@
-import {model, Schema} from "mongoose";
+import db from '../db.js';
 
-const UserSchema = new Schema({
-    firstName: {type: String, required: true},
-    lastName: {type: String, required: true},
-    email: {type: String, required: true, unique: true},
-    password: {type: String, required: true},
-    username: {type: String, required: true, unique: true},
-})
+export const getAllUsers = async () => {
+    try {
+      return db.one('SELECT * FROM users limit 1');
+    }catch(err) {
+        return err
+    }
+};
 
-const User  = model('User', UserSchema)
-export default User
+export default getAllUsers
