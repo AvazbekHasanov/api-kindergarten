@@ -34,8 +34,8 @@ const getLocalIpAddress = () => {
 };
 router.get("/", async (req, res) => {
   console.log("Salom", req.query.id);
-  const data =  await getAllUsers()
-  console.log("AuthRoutes.getAllUsers()",  data, data[0])
+  // const data =  await getAllUsers()
+  // console.log("AuthRoutes.getAllUsers()",  data, data[0])
   res.send("Hello world");
 });
 
