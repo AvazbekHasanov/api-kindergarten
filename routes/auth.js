@@ -1,54 +1,79 @@
 import { Router } from "express";
 import dotenv from "dotenv";
-import nodemailer from 'nodemailer'
-import User from "../models/User.js";
-
 import bcrypt from "bcrypt";
+import {createUser, updateUser, login, getJWTToken, findUserByUsername} from '../controllers/auth.js';
+import {verifyBarerToken} from '../middleware/authMiddleware.js'
+import User from "../models/User.js"; // Use relative path
 
 dotenv.config();
 
 const router = Router();
 
-const emailConfig = {
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_APP_USER, // your email address
-    pass: process.env.GMAIL_APP_PASSWORD, // your app password
-  },
-};
 
-let message = {
-  from: process.env.GMAIL_APP_USER,
-  to: "avazbekxasanov200@gmail.com",
-  subject: "Welcome to ABC Website!",
-  html: "<b>Hello world?</b>",
-};
+router.post("/api/auth/register" ,async (req, res) => {
 
-const transporter = nodemailer.createTransport(emailConfig);
+    try {
+        const result = await createUser(req); // No need to pass res here
+        res.status(200).json({ message: "User created successfully", user: result });
+    } catch (err) {
+        const errorKey = !!err.message.match(/"([^"]*)"/) && err.message.match(/"([^"]*)"/).length > 1 ? err.message.match(/"([^"]*)"/)[1] : '';
+        let typeError = ''
+        if(errorKey === 'auth_users_email_key'){
+            typeError = 'EMAIL_ADDRESS_ALREADY_EXISTS'
+        }else if(errorKey === 'auth_users_username_key'){
+            typeError = 'USERNAME_ADDRESS_ALREADY_EXISTS'
+        }
 
-router.post("/auth/services/register", async (req, res) => {
-  const saltRounds = 10;
-  let hashPassword = ''
-  await bcrypt.hash(req.body.password, saltRounds).then((hash) => {
-      hashPassword = hash;
-      console.log(hash)
-    })
-    .catch((err) => {
-      res.send(JSON.status(401).stringify({ msg: err.message }));
-    });
-  const userData = {
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: hashPassword,
-    username: req.body.username
-  };
-  try {
-    const user = await User.create(userData);
-    res.status(200).json(user);
-  } catch (err) {
-    res.status(500).json({ msg: "Error on creating user", error: err.message });
-  }
+        res.status(500).send({
+            message: `Failed to create user: ${err.message}`,
+            typeError: typeError
+        });
+    }
 });
 
-export default router
+router.post("/api/auth/update", async (req, res) => {
+    try {
+        const result = await updateUser(req); // No need to pass res here
+        res.status(201).json({ message: "User updated successfully", user: result });
+    } catch (err) {
+        res.status(500).send({ message: `Failed to update user: ${err.message}` });
+    }
+});
+
+router.post("/api/auth/login", async (req, res) => {
+    if(!validateEmail(req.body.username)){
+       res.status(400).json({
+           message: "Email address required",
+           typeError: 'EMAIL_ADDRESS_VALID_WRONG'
+       });
+       return
+    }
+    const result = await login(req)
+    if(result && result.id){
+        await bcrypt.compare(req.body.password, result.password, async (err, isMatch) => {
+            if (isMatch) {
+                delete result.password
+                const token = await getJWTToken(result)
+                res.status(200).json({ message: "User login Successfully", accessToken: token });
+
+            } else {
+                res.status(401).json({message: "Invalid Credentials", typeError: 'WRONG_PASSWORD'});
+            }
+        })
+    }else {
+        res.status(401).json({message: "User not found", typeError: 'USER_NOT_FOUND'});
+    }
+})
+
+router.get('/api/find/user', verifyBarerToken, async (req, res) => {
+    let lookingUsername =  req.query.username;
+    const result = await findUserByUsername(lookingUsername);
+    res.status(200).json({result: result})
+})
+
+function validateEmail(email) {
+  let re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+export default router;
