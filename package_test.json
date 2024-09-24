@@ -4,12 +4,17 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon --exec node index.js"
+    "build": "babel src -d dist",
+    "start": "node dist/index.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
+  "devDependencies": {
+    "@babel/core": "^7.16.0",
+    "@babel/cli": "^7.16.0",
+    "@babel/preset-env": "^7.16.0"
+  },
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
@@ -23,10 +28,5 @@
     "nodemailer": "^6.9.14",
     "nodemon": "^3.1.4",
     "pg-promise": "^11.9.1"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.25.6",
-    "@babel/core": "^7.25.2",
-    "@babel/preset-env": "^7.25.4"
   }
 }
