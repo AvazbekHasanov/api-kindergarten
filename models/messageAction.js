@@ -31,7 +31,7 @@ const Message = {
         try {
             return await db.one(query, data)
         }catch(err) {return err}
-    }
+    },
     checkChat: async (data) => {
         const query = ``
     }
