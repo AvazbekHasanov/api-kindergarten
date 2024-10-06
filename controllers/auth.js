@@ -2,7 +2,6 @@ import User from '../models/User.js';
 import bcrypt from "bcrypt";
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import {runQuery} from '../globalFunction.js'
 
 dotenv.config();
 export const createUser = async (req) => {
@@ -58,10 +57,7 @@ export const login = async (req) => {
 }
 
 export const getJWTToken = async (obj) => {
-    let token = jwt.sign(obj, process.env.JWT_SECRET, { expiresIn: '1h' });
-    // let decoded = jwt.verify(token,process.env.JWT_SECRET);
-    // console.log(decoded, 'now',Math.floor(Date.now() / 1000) )
-    return token
+    return jwt.sign(obj, process.env.JWT_SECRET, {expiresIn: '1h'})
 
 }
 
