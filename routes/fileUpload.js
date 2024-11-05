@@ -2,6 +2,8 @@ import Router from 'express';
 import multer from 'multer';
 import path from 'path';
 
+import iconv from 'iconv-lite'
+
 const router = Router();
 
 // Set up storage for uploaded files
@@ -14,27 +16,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
-  // fileFilter: function(req, file, cb) {
-  //   checkFileType(file, cb);
-  // }
+  limits: { fileSize: 30 * 1024 * 1024 },
 }).single('file');
 
 
-function checkFileType(file, cb) {
-  // return cb(null, true);
-  const filetypes = /jpeg|jpg|png|gif/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
 
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb('Error: Images Only!');
-  }
-}
-
-// Define the upload route
 router.post('/api/upload', (req, res) => {
   upload(req, res, (err) => {
     if (err) {
@@ -45,8 +31,10 @@ router.post('/api/upload', (req, res) => {
       return res.status(400).json({ msg: 'No file selected!' });
     } else {
       return res.json({
-        msg: 'File uploaded!',
-        file: `uploads/${req.file.filename}`
+        path: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`,
+        extension: req.file.mimetype.split('/').length>0? req.file.mimetype.split('/')[1]:  req.file.mimetype,
+         filename: iconv.decode(Buffer.from(req.file.originalname, 'binary'), 'utf-8'),
+        size: (req.file.size/(1024 * 1024)).toFixed(2),
       });
     }
   });
