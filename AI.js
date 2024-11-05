@@ -6,8 +6,8 @@ export const checkImage = async (image) => {
       params: {
         'url': image,
         'models': 'nudity-2.1,alcohol,offensive,gore-2.0,self-harm',
-        'api_user': '998792024',
-        'api_secret': '7iJ9KyVy9DTtYJmwedm5hxTFencBiqSw',
+        'api_user': process.env.API_USER,
+        'api_secret': process.env.IMAGE_SECRET,
       }
     });
     return response.data; // returning the response data from the function
