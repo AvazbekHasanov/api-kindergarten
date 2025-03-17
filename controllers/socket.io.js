@@ -1,31 +1,37 @@
-import {Server} from "socket.io";
+import { Server } from 'socket.io';
 
+let io;
+
+// Initialize the socket.io connection
 export const connectToSocket = (server) => {
+  io = new Server(server, {
+    cors: {
+        origin: 'http://localhost:5173',
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
 
+  io.on('connection', (socket) => {
+    console.log(`A user connected: ${socket.id}`);
+    
+    // Save the socket.id and userId to the database when the user connects
+    const userId = socket.handshake.query.userId; // Get user ID from the query parameter
+    if (userId) {
+      
+          console.log(`User ${userId} connected and socket_id saved: ${socket.id}`);
 
-    const io = new Server(server, {
-        cors: {
-            origin: "*", // Allow all origins or specify your frontend URL
-            methods: ["GET", "POST"],
-            credentials: true,
-        },
+    }
+
+    // Handle disconnection
+    socket.on('disconnect', () => {
+      console.log(`User ${userId} disconnected`);
+            console.log(`User ${userId} socket ID removed from database`);
+
     });
+  });
+};
 
-// Socket.IO connection
-    io.on("connection", (socket) => {
-        console.log(`User connected: ${socket.id}`);
-
-        socket.on("sendMessage", (message) => {
-            console.log("Received message: ", message);
-            // Broadcast message to all connected clients
-            io.emit("receiveMessage", message);
-        });
-
-        socket.on("disconnect", () => {
-            console.log(`User disconnected: ${socket.id}`);
-        });
-    });
-}
-
-
-export default {connectToSocket};
+export const sendEmitToUser = async (userId, event, data) => {
+      io.to(userId).emit(event, data);
+};

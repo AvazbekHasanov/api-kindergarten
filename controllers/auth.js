@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import bcrypt from "bcrypt";
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import { createTransport } from "nodemailer";
 
 dotenv.config();
 export const createUser = async (req) => {
@@ -56,8 +57,36 @@ export const login = async (req) => {
 
 }
 
+export const sendSmsToEmail = async (req) => {
+  try {
+    let transporter = createTransport({
+            service: "gmail",
+            auth: {
+                user: "avazbekhasanov003@gmail.com",
+                pass: "avazbek0003",
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
+
+
+        let info = await transporter.sendMail({
+            from: `avazbekhasanov003@gmail.com`,
+            to: "avazbekxasanov200@gmail.com",
+            subject: `Сообщение от Avazbek`,
+            text: `Hi bro`,
+            html: `<b>Hi br</b>`
+        })
+    console.log("Email sent successfully:", info.response);
+  } catch (err) {
+    console.error("Error sending email:", err.message);
+    throw new Error(err.message);
+  }
+};
+
 export const getJWTToken = async (obj) => {
-    return jwt.sign(obj, process.env.JWT_SECRET, {expiresIn: '1h'})
+    return jwt.sign(obj, process.env.JWT_SECRET, {expiresIn: '8h'})
 
 }
 
@@ -66,4 +95,22 @@ export const findUserByUsername =  async (param)=>{
     return  await User.findUser(param)
 }
 
-export default { createUser, updateUser, login , getJWTToken, findUserByUsername};
+export const changeState = async (req) => {
+    let data = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    console.log("data controller", data)
+    try {
+        return await User.changeState({user_id: data.user_id, state: data.state});
+    } catch (err) {
+        throw new Error(err.message);
+    }
+}
+
+export default {
+  createUser,
+  updateUser,
+  login,
+  getJWTToken,
+  findUserByUsername,
+  changeState,
+    sendSmsToEmail
+};

@@ -48,13 +48,15 @@ const Message = {
     },
     ChatMessages: async (data) => {
         try {
-        const query = `select m.content, m.files,
+        const query = `select m.id, m.content, m.files,
+                              m.chat_id,
+                              m.is_read,
                            case when au.first_name is not null then concat(au.first_name, ' ', au.last_name) else au.username end as "from",
                               case when sender_id = $/current_user_id/ then true else false end as is_owner,
                               to_char(sent_at, 'HH:MS')                                       as send_at
                        from messages m
                        left join auth_users au on au.id = m.sender_id 
-                       where m.chat_id = $/chat_id/ order by sent_at`
+                       where m.chat_id = $/chat_id/ order by sent_at`;
             return await db.any(query, data)
         }catch (er){
             throw new Error(er)
