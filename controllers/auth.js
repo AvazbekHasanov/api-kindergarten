@@ -11,11 +11,12 @@ export const createUser = async (req) => {
         const hashPassword = await bcrypt.hash(req.body.password, saltRounds);
 
         const data = {
-            username: req.body.username,
-            last_name: req.body.last_name,
-            first_name: req.body.first_name,
+            post_name: req.body.name || 'user',
+            full_name: req.body.full_name,
             password: hashPassword,
-            email: req.body.email
+            email: req.body.email,
+            user_type: req.body.user_type,
+            photo: req.body.avatar,
         };
 
         return await User.insertUser(data);

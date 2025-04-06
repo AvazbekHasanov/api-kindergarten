@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { Router } from "express";
 import path from "path";
+import fs from "fs";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
@@ -19,8 +20,6 @@ const app = express();
 const router = Router();
 const server = createServer(app);
 
-// Import your socket connection module
-import { connectToSocket, sendEmitToUser } from "./controllers/socket.io.js";
 
 // Middleware
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -29,18 +28,53 @@ app.use(express.text());
 app.use(cors({ credentials: true, origin: true }));
 app.use(cookieParser());
 
+
+app.get("/file/:id", (req, res) => {
+  const baseFileName = req.params.id;
+  const ext = req.query.ext || '.svg';
+
+  const filePathWithoutExt = path.join(__dirname, "uploads", baseFileName);
+
+  const extensionMimeMap = {
+    '.svg': 'image/svg+xml',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.pdf': 'application/pdf',
+    '.txt': 'text/plain',
+    // Add other extensions as needed
+  };
+
+  fs.exists(filePathWithoutExt, (existsWithoutExt) => {
+    console.log("exists without EXT:", existsWithoutExt);
+
+    if (existsWithoutExt) {
+      // If file exists, set the MIME type based on the known extension
+      const mimeType = extensionMimeMap[ext] || 'application/octet-stream'; // Get MIME type for the extension
+      res.setHeader('Content-Type', mimeType); // Set MIME type
+      return res.sendFile(filePathWithoutExt); // Serve the file with the extension
+    } else {
+      // If the file doesn't exist, send a 404 response
+      return res.status(404).send('File not found');
+    }
+  });
+});
+
+
 // Import Routes
 import AuthRoutes from "./routes/auth.js";
-import createChat from "./routes/chat.js";
-import Messages from "./routes/message.js";
-import FileUpload from "./routes/fileUpload.js";
-import { checkImage } from "./AI.js";
+import UploadFiles from "./routes/fileUpload.js"
+import Groups from "./routes/groups.js";
+import Employees from "./routes/Employees.js";
+import Children from "./routes/children.js";
 
 app.use(router);
 app.use(AuthRoutes);
-app.use(createChat);
-app.use(Messages);
-app.use(FileUpload);
+app.use(UploadFiles);
+app.use(Groups)
+app.use(Employees)
+app.use(Children)
+
 
 // Test routes
 app.get("/:id?", async(req, res) => {
@@ -57,13 +91,6 @@ app.get("/:id?", async(req, res) => {
   
 });
 
-app.get("/api/check-image", async (req, res) => {
-  let res1 = await checkImage(req.query.image);
-  res.status(200).json({ res: res1 });
-});
-
-// Start the Socket.IO connection
-connectToSocket(server);
 
 // Start the server
 const PORT = process.env.PORT || 3000;

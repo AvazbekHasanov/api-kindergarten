@@ -31,7 +31,7 @@ router.post('/api/upload', (req, res) => {
       return res.status(400).json({ msg: 'No file selected!' });
     } else {
       return res.json({
-        path: `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`,
+        path: `/uploads/${req.file.filename}`,
         extension: req.file.mimetype.split('/').length>0? req.file.mimetype.split('/')[1]:  req.file.mimetype,
          filename: iconv.decode(Buffer.from(req.file.originalname, 'binary'), 'utf-8'),
         size: (req.file.size/(1024 * 1024)).toFixed(2),
