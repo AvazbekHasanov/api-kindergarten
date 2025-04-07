@@ -81,7 +81,6 @@ app.get("/:id?", async(req, res) => {
   res.cookie("test", "test 123");
   try {
     // Send message to specific user
-    await sendEmitToUser(req.params.id, 'new-message', "Salom qanday");
     res.status(200).send(`Hello world. Your ID: ${req.params.id ? req.params.id : "none"}!`);
   } catch (err) {
     res.status(500).send(`Error sending message , ${err}`);
