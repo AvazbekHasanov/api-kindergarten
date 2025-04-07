@@ -1,6 +1,6 @@
 import { Router } from "express";
 import dotenv from "dotenv";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import {createUser, updateUser, login, getJWTToken, findUserByUsername, changeState, sendSmsToEmail} from '../controllers/auth.js';
 import {verifyBarerToken} from '../middleware/authMiddleware.js'
 import User from "../models/User.js"; // Use relative path
